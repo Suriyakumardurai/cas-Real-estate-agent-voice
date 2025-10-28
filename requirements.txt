@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-dotenv
+twilio
+aiofiles
+loguru
+pipecat-ai[aws,silero]
+python-multipart
+pipecat-ai[deepgram]
+
