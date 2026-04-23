@@ -22,6 +22,10 @@ call_body_data = {}
 
 app = FastAPI()
 
+# Set default testing state (Railway runs uvicorn main:app directly,
+# skipping the __main__ block where this was previously set)
+app.state.testing = False
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins for testing
@@ -45,12 +49,9 @@ async def websocket_endpoint(websocket: WebSocket):
         runner_args = WebSocketRunnerArguments(websocket=websocket)
         runner_args.handle_sigint = False
 
-        # Only pass testing argument for local development
-        env = os.getenv("ENV", "local").lower()
-        if env == "local":
-            await bot(runner_args, app.state.testing)
-        else:
-            await bot(runner_args)
+        # Pass testing flag (defaults to False on cloud deployments)
+        testing = getattr(app.state, 'testing', False)
+        await bot(runner_args, testing)
 
     except Exception as e:
         import traceback
@@ -148,14 +149,11 @@ async def start_call(request: Request):
         if body_data:
             print(f"Body data: {body_data}")
 
-    # Validate environment configuration for production
+    # Validate environment configuration for Pipecat Cloud production
     env = os.getenv("ENV", "local").lower()
     if env == "production":
         if not os.getenv("AGENT_NAME") or not os.getenv("ORGANIZATION_NAME"):
-            raise HTTPException(
-                status_code=500,
-                detail="AGENT_NAME and ORGANIZATION_NAME must be set for production deployment",
-            )
+            print("Warning: AGENT_NAME and ORGANIZATION_NAME not set for production. Skipping Pipecat Cloud routing.")
 
     # Get request host and construct WebSocket URL
     host = request.headers.get("host")
