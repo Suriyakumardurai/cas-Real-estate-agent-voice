@@ -33,9 +33,8 @@ The bot can receive custom data for personalized responses by including query pa
 
 ### AI Services
 
-- OpenAI API key for the LLM inference
-- Deepgram API key for speech-to-text
-- Cartesia API key for text-to-speech
+- Google Gemini API key for the LLM inference
+- Deepgram API key for speech-to-text and text-to-speech
 
 ### System
 
