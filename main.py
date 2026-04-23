@@ -87,7 +87,7 @@ def generate_twiml(host: str, body_data: dict = None) -> str:
 
     connect = Connect()
     response.say(
-        "Welcome to IntelliGenAI Health Assistant.",
+        "Welcome to Intelli Generative AI Healthcare Assistant Developed by Jeevithaa.",
         loop=1,
         voice="Polly.Amy"
     )
