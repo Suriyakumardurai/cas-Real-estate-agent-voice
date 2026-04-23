@@ -101,10 +101,10 @@ The bot supports two deployment modes controlled by the `ENV` variable:
 
 ### Run the Local Server
 
-`server.py` runs a FastAPI server, which Twilio uses to coordinate the inbound call. Run the server using:
+`main.py` runs a FastAPI server, which Twilio uses to coordinate the inbound call. Run the server using:
 
 ```bash
-uv run server.py
+uv run main.py
 ```
 
 ### Call your Bot
@@ -136,7 +136,7 @@ ORGANIZATION_NAME=your-org-name
 
 ### Deploy the Server
 
-The `server.py` handles inbound call webhooks and should be deployed separately from your bot:
+The `main.py` handles inbound call webhooks and should be deployed separately from your bot:
 
 - **Bot**: Runs on Pipecat Cloud (handles the conversation)
 - **Server**: Runs on your infrastructure (receives webhooks, serves TwiML responses)
