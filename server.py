@@ -87,7 +87,7 @@ def generate_twiml(host: str, body_data: dict = None) -> str:
 
     connect = Connect()
     response.say(
-        "Welcome to Phone Call Real Estate Assistant.",
+        "Welcome to IntelliGenAI Health Assistant.",
         loop=1,
         voice="Polly.Amy"
     )
@@ -108,7 +108,7 @@ def generate_twiml(host: str, body_data: dict = None) -> str:
 
     connect.append(stream)
     response.say(
-        "Please wait. we are connecting you to an agent. May Take a few seconds.",
+        "Please wait. we are connecting you to an Health assistant. May Take a few seconds.",
         loop=1,
         voice="Polly.Amy"
     )

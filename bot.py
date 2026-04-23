@@ -23,8 +23,8 @@ from pipecat.runner.utils import parse_telephony_websocket
 from pipecat.serializers.twilio import TwilioFrameSerializer
 
 
-# NEW: Import AWS Services
-from pipecat.services.aws.llm import AWSBedrockLLMService
+# NEW: Import Google Services
+from pipecat.services.google import GoogleLLMService
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.deepgram.tts import DeepgramTTSService
 import os
@@ -75,25 +75,23 @@ async def save_audio(audio: bytes, sample_rate: int, num_channels: int):
 
 async def run_bot(transport: BaseTransport, handle_sigint: bool, testing: bool):
     
-    # --- SERVICES CHANGED TO AWS ---
+    # --- SERVICES CONFIGURATION ---
 
-    # NEW: AWS Bedrock LLM
-    # Assumes AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION_NAME are in .env
-    llm = AWSBedrockLLMService(
-        model="anthropic.claude-3-haiku-20240307-v1:0",  # Changed to Claude 3 Haiku
-        region_name=os.getenv("AWS_REGION_NAME", "ap-south-1"), # Ensure region is correct
-        temperature=0.7,
-        top_p=0.9,
+    # NEW: Google Gemini LLM
+    # Assumes GEMINI_API_KEY is in .env
+    llm = GoogleLLMService(
+        api_key=os.getenv("GEMINI_API_KEY"),
+        model="gemini-1.5-flash-latest",
     )
 
-    # ✅ AWS Transcribe STT
+    # ✅ Deepgram STT
     stt = DeepgramSTTService(
         api_key=os.getenv("DEEPGRAM_API_KEY"),
         model="nova-2",
         language="en-IN"
     )
 
-    # ✅ AWS Polly TTS
+    # ✅ Deepgram TTS
     tts = DeepgramTTSService(
         api_key=os.getenv("DEEPGRAM_API_KEY"),
         model="aura-asteria-en"
@@ -101,33 +99,27 @@ async def run_bot(transport: BaseTransport, handle_sigint: bool, testing: bool):
 
     # --- END OF SERVICE CHANGES ---
 
-    # --- REAL ESTATE PROMPT for CLAUDE 3 (with Clean Text Rule) ---
-
-    # --- REFINED REAL ESTATE PROMPT for CLAUDE 3 ---
-
-    # --- FINAL REAL ESTATE PROMPT for CLAUDE 3 (as User Role) ---
+    # --- HEALTH CARE PROMPT ---
 
     messages = [
         {
             "role": "user",  # MUST be "user" for the very first message
             "content": (
-                "System Instructions: You are 'PropPal', a friendly, professional, and extremely concise AI real estate assistant. "
-                "Your primary goal is to efficiently guide users to a confirmed property viewing booking. "
+                "System Instructions: You are 'IntelliGenAI Health Assistant', a friendly, professional, and empathetic AI healthcare assistant. "
+                "This is a final year project developed by S Jeevithaa. "
+                "Your goal is to help users by answering health-related questions, clearing doubts, and providing basic to intermediate health insights based on symptoms. "
                 "\n"
-                "Your Key Traits: "
-                "1.  **Professional & Helpful:** Confident, trustworthy, knowledgeable. "
-                "2.  **Inquisitive & Focused:** Ask clear, targeted questions to gather necessary info (location, budget, property type, size, purpose). "
+                "Your Key Constraints: "
+                "1.  **NO MEDICINE:** You MUST NOT recommend or prescribe any specific medicines or dosages. If asked, explain that you cannot provide medical prescriptions. "
+                "2.  **NO ADVANCED DIAGNOSIS:** Do not attempt to diagnose complex or life-threatening conditions. Refer users to a qualified doctor for advanced diagnosis. "
+                "3.  **Basic Insights:** You can provide basic to intermediate insights and potential causes for common symptoms to help the user understand their situation better. "
                 "\n"
-                "Your Core Rules: "
+                "Your Conversational Rules: "
                 "1.  **ONE QUESTION AT A TIME:** Your response must ask **only one single question** and then stop speaking and wait for the user's answer. Do not ask multiple questions in the same turn. "
-                "2.  **BE BRIEF:** Keep your statements and questions short and to the point. Avoid lengthy explanations or summaries unless specifically confirming details before booking. "
-                "3.  **No Repetition:** Keep track of information. **Do not ask the same question twice.** "
-                "4.  **Confirm Before Booking:** Before finalizing, **you must summarize all key details** (property, date, time, name) in one concise message and ask for explicit confirmation (e.g., 'Okay, I have [Details]. Is that correct?'). "
-                "5.  **Clean Output ONLY:** Your response must be clean spoken text. **No** non-speech sounds ('*ahem*'), **no** symbols (*), **no** markdown formatting. Only use standard punctuation. "
+                "2.  **BE BRIEF:** Keep your statements and questions short and to the point. "
+                "3.  **Clean Output ONLY:** Your response must be clean spoken text. **No** non-speech sounds, **no** symbols, **no** markdown formatting. Only use standard punctuation. "
                 "\n"
-                "Your Tools: You will have tools for availability checks and bookings. "
-                "\n"
-                "Task: Start the conversation now by introducing yourself concisely ('Hi, I'm PropPal, your real estate assistant.') and asking your first question: 'What kind of property are you looking for today?'"
+                "Task: Start the conversation now by introducing yourself: 'Hi, I'm the IntelliGenAI Health Assistant, a final year project developed by S Jeevithaa. How can I help you with your health concerns today?'"
             )
         }
     ]
@@ -145,11 +137,11 @@ async def run_bot(transport: BaseTransport, handle_sigint: bool, testing: bool):
     pipeline = Pipeline(
         [
             transport.input(),  # Websocket input from client
-            stt,  # Speech-To-Text (Now AWS Transcribe)
+            stt,  # Speech-To-Text (Deepgram)
             transcription_logger,  # Log what user said
             context_aggregator.user(),
-            llm,  # LLM (Now AWS Bedrock)
-            tts,  # Text-To-Speech (Now AWS Polly)
+            llm,  # LLM (Now Google Gemini)
+            tts,  # Text-To-Speech (Deepgram)
             transport.output(),  # Websocket output to client
             audiobuffer,  # Used to buffer the audio in the pipeline
             context_aggregator.assistant(),
