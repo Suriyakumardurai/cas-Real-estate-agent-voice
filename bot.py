@@ -24,7 +24,7 @@ from pipecat.serializers.twilio import TwilioFrameSerializer
 
 
 # NEW: Import Google Services
-from pipecat.services.google import GoogleLLMService
+from pipecat.services.google.llm import GoogleLLMService
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.deepgram.tts import DeepgramTTSService
 import os
